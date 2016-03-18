@@ -17,9 +17,9 @@ fn main() {
 
     let lines: Vec<&str> = content.split("\n").collect();
     #[derive(Debug)]
-    struct Operation {
-        reg: String,
-        instr: String,
+    struct Operation<'a> {
+        reg: &'a str,
+        instr: &'a str,
         value: i32,
     };
     
@@ -28,14 +28,14 @@ fn main() {
     for line in &lines {
         let ops: Vec<&str> = line.split(' ').collect();
         let op = match ops[0] {
-            r @ "jmp" => Operation {reg: "".to_string(),
-                                    instr: r.to_string(),
+            r @ "jmp" => Operation {reg: "",
+                                    instr: r,
                                     value: ops[1].parse().expect(ops[1])},
-            r @ "jio" | r @ "jie" => Operation {reg: ops[1].to_string(),
-                                                instr: r.to_string(),
+            r @ "jio" | r @ "jie" => Operation {reg: ops[1],
+                                                instr: r,
                                                 value: ops[2].parse().expect(ops[2])},
-            r => Operation {reg: ops[1].to_string(),
-                            instr: r.to_string(),
+            r => Operation {reg: ops[1],
+                            instr: r,
                             value: 0},
         };
         operations.push(op);
@@ -50,12 +50,12 @@ fn main() {
         while i < operations.len() {
             match operations[i] {
 
-                Operation {ref reg, ref instr, value} => {
+                Operation {reg, instr, value} => {
                     let mut plus: i32 = 1;
-                    match instr as &str {
+                    match instr {
                         "jmp" => plus = value,
                         other => {
-                            let reg_value = match regs.get(&**reg){
+                            let reg_value = match regs.get(&reg){
                                 Some(&val) => val,
                                 _ => panic!("register not found")
                             };
