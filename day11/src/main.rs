@@ -49,7 +49,6 @@ fn main() {
                 match self.password[i] == self.password[i+1] {
                     true if same_byte == 0 => same_byte = self.password[i],
                     true if same_byte != self.password[i] => {
-                        //println!("{:?}", good_pass);
                         good_pass = true;
                         break;
                     },
@@ -79,10 +78,7 @@ fn main() {
         }
     }
 
-    let password_maker = PasswordMaker::new("vzbxkghb");
-    //println!("{:?}", "vzbxkghb".bytes().rev().collect());
+    let password_maker = PasswordMaker::new("vzbxkghb").new_password_maker();
+    println!("{:?}", password_maker.get_password());
     println!("{:?}", password_maker.new_password_maker().get_password());
-    println!("{:?}", password_maker.new_password_maker().new_password_maker().get_password());
-    //let password_maker = PasswordMaker::new("ayz");
-    //println!("{:?}", password_maker.next_password().next_password().next_password().next_password().next_password());
 }
