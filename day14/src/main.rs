@@ -29,11 +29,29 @@ fn main() {
                   rest_time: reindeer_info[13].parse().unwrap()}
     }).collect();
 
-    let max_distance: u32 = reindeers.iter().map(|r| {
+    fn cur_position(r: &Reindeer, cur_second: &u32) -> u32 {
         let cycle_time = r.fly_time + r.rest_time;
-        let cycle_count = TIME_PASSED / cycle_time;
-        r.speed * r.fly_time * cycle_count + cmp::min(TIME_PASSED - cycle_time * cycle_count, r.fly_time) * r.speed
-    }).max().unwrap();
+        let cycle_count = cur_second / cycle_time;
+        r.speed * r.fly_time * cycle_count + cmp::min(cur_second - cycle_time * cycle_count, r.fly_time) * r.speed
+    }
+
+    let max_distance: u32 = reindeers.iter().map(|r| cur_position(r, &TIME_PASSED)).max().unwrap();
+    let reindeers_count = reindeers.len();
+    let mut scores: Vec<u32> = vec![0; reindeers_count];
+    let mut cur_second: u32 = 1;
+    
+    while cur_second <= TIME_PASSED {
+        let r_distances: Vec<(usize, u32)> = (0..reindeers_count).map(|r_id| (r_id, cur_position(&reindeers[r_id], &cur_second))).collect();
+        let max_distance = r_distances.iter().max_by_key(|x| x.1).unwrap().1;
+        for r_distance in r_distances {
+            if r_distance.1 == max_distance {
+                scores[r_distance.0] += 1;
+            }
+        };
+        cur_second += 1;
+    }
+    
 
     println!("{:?}", max_distance);
+    println!("{:?}", scores.iter().max().unwrap());
 }
