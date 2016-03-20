@@ -41,18 +41,24 @@ fn main() {
                available_guests.iter().map(|g| calculate_sitting_arrangement(guests_relation, guests, update_sitted_guests(&sitted_guests, g))).max().unwrap()
            },
            true => {
-               //println!("{:?}", sitted_guests);
-               (0..(sitted_guests.len() - 2))
+               (0..(sitted_guests.len() - 1))
                    .map(|i: usize| guests_relation.get(&(sitted_guests[i], sitted_guests[i+1])).unwrap()
                             + guests_relation.get(&(sitted_guests[i+1], sitted_guests[i])).unwrap()).fold(0, |sum, x| sum + x) + 
                                 guests_relation.get(&(sitted_guests[sitted_guests.len()-1], sitted_guests[0])).unwrap()
                                 + guests_relation.get(&(sitted_guests[0], sitted_guests[sitted_guests.len()-1])).unwrap()
-               }
+           }
 
        }
     
     }
 
+    let best_a = calculate_sitting_arrangement(&guests_relation, &guests, vec!());
+    println!("{:?}", best_a);
+    for g in &guests {
+        guests_relation.insert(("Denys", g), 0);
+        guests_relation.insert((g, "Denys"), 0);
+    };
+    guests.insert("Denys");
     let best_a = calculate_sitting_arrangement(&guests_relation, &guests, vec!());
     println!("{:?}", best_a);
 }
