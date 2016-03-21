@@ -39,16 +39,34 @@ fn main() {
         known_things.insert(params[0], params[1].parse().unwrap());
     };
 
-    let mut aunts_index: Vec<usize>;
+    let mut aunts_index: usize = 0;
 
-    for en_thing in &aunts_things.iter().enumerate() {
-        let index: <usize, Thing> = en_thing.next();
-        if thing.iter().map(|thing_info| thing_info.1 == known_things[thing.info.0]).all(|good| good == true){
-            aunts_index.push(index);
+    for en_thing in aunts_things.iter().enumerate() {
+        let (index, thing) = en_thing;
+        if thing.iter().map(|thing_info| thing_info.1 == known_things[thing_info.0]).all(|good| good == true){
+            aunts_index = index + 1;
+            break;
         }
     
-    }
+    };
 
+    println!("{:?}", aunts_index);
+
+    for en_thing in aunts_things.iter().enumerate() {
+        let (index, thing) = en_thing;
+        if thing.iter().map(|thing_info| {
+            match thing_info.0 {
+                t @ "cats" | t @ "trees" => thing_info.1 > known_things[t],
+                t @ "pomeranians" | t @ "goldfish" => thing_info.1 < known_things[t],
+                t  => thing_info.1 == known_things[t],
+            } 
+            
+        }).all(|good| good == true){
+            aunts_index = index + 1;
+            break;
+        }
+    };
+    
     
     println!("{:?}", aunts_index);
 }
