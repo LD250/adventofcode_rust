@@ -22,23 +22,33 @@ fn main() {
          (params[6], params[7].parse().unwrap())] as Thing
     }).collect();
 
-    let mut content = String::new();
+    let mut tape_content = String::new();
 
     match File::open("data/ticker_tape.txt") {
         Err(_) => panic!("Error reading file"),
         Ok(mut file) => {
-            file.read_to_string(&mut content).unwrap();
-            content = content.replace(":", "");
+            file.read_to_string(&mut tape_content).unwrap();
+            tape_content = tape_content.replace(":", "");
         },
     };
 
 
     let mut known_things: HashMap<&str, u8> = HashMap::new();
-    content.trim().split("\n").map(|line| {
+    for line in tape_content.trim().split("\n") {
         let params: Vec<&str> = line.split(" ").collect();
-        known_things.insert(params[0], params[1].parse().unwrap())
-    });
+        known_things.insert(params[0], params[1].parse().unwrap());
+    };
+
+    let mut aunts_index: Vec<usize>;
+
+    for en_thing in &aunts_things.iter().enumerate() {
+        let index: <usize, Thing> = en_thing.next();
+        if thing.iter().map(|thing_info| thing_info.1 == known_things[thing.info.0]).all(|good| good == true){
+            aunts_index.push(index);
+        }
+    
+    }
 
     
-    println!("{:?}", known_things);
+    println!("{:?}", aunts_index);
 }
