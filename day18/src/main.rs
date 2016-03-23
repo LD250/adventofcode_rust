@@ -22,6 +22,7 @@ fn main() {
         y: usize,
     }
 
+    /*
     impl Iterator for RectIndexes {
         type Item = (usize, usize);
         fn next(&mut self) -> Option<(usize, usize)> {
@@ -35,6 +36,7 @@ fn main() {
             None
         }
     }
+    */
 
 /*    fn get_rect_indedes(middle_index: (usize, usize)) -> [(usize, usize)] {
         for r in [-1, 0, 1] {
@@ -44,26 +46,27 @@ fn main() {
         }
     }*/
     // let coords: Vec<(i8, i8)> = (-1..2).map(|x: i8| (-1..2).map(|y: i8| (x, y))).iter().flat_map(|c: (i8, i8)| c).collect();
-    let coords: Vec<(i8, i8)> = (-1..2).map(|x| (-1..2).map(|y| (x.clone(), y.clone())).collect()).flat_map(|c: Vec<(i8, i8)>| c).collect();
+    fn neighbours_on(scheme: &Scheme, r: i8, c: i8) -> i8 {
+        (-1..2).map(|x| (-1..2).map(|y| (x.clone(), y.clone())).collect())
+                               .flat_map(|co: Vec<(i8, i8)>| co)
+                               .filter(|&(x, y)| ((x != 0) || (y != 0)) && (r + x >= 0) && (r + x < 100) && (c + y >= 0) && (c + y < 100))
+                               .map(|(x, y)| ((x + r) as usize, (y + c) as usize))
+                               //.inspect(|x| println!("!! {:?}", x))
+                               .filter(|&(x, y)| scheme[x][y] == true)
+                               .count() as i8
+    }
 
-
-    fn new_scheme(scheme: Scheme) -> Scheme {
+    fn new_scheme(scheme: &Scheme) -> Scheme {
         let mut new_scheme: Scheme = vec![];
         for r in 0..scheme.len() {
+            new_scheme.push(vec![]);
             for c in 0..scheme.len() {
-                let on_count = 1;//RectIndexes {x: r, y: c}.filter(|coord| scheme[coord.0][coord.1] == true).count();
-                /*println!("{:?}", c);
-                let mut i = RectIndexes {x: r as i8, y: c as i8};
-                println!("{:?}", i.next());
-                println!("{:?}", i.next());
-                println!("{:?}", i.next());
-                println!("{:?}", i.next());*/
-                let on_count = RectIndexes {x: r as i8, y: c as i8}.filter(|coord| scheme[coord.0][coord.1] == true).count();
+                let on_count = neighbours_on(&scheme, r as i8, c as i8);
                 match scheme[r][c] {
-                    true if on_count == 2 || on_count == 3 => new_scheme[r][c] = true,
-                    true => new_scheme[r][c] = false,
-                    false if on_count ==3 => new_scheme[r][c] = true,
-                    false => new_scheme[r][c] = false,
+                    true if on_count == 2 || on_count == 3 => new_scheme[r].push(true),
+                    true => new_scheme[r].push(false),
+                    false if on_count == 3 => new_scheme[r].push(true),
+                    false => new_scheme[r].push(false),
                 }
                 // println!("{:?}", new_scheme);
             
@@ -72,7 +75,16 @@ fn main() {
         new_scheme
     
     }
-
-    println!("{:?}", coords);
+    println!("{:?}", scheme[0]);
+    let mut i = 1;
+    loop {
+        let scheme = new_scheme(&scheme);
+        i += 1;
+        if i > 100 {
+            let cc = scheme.iter().map(|line: Vec<bool>| line.iter().filter(|&b| *b).count());//.fold(0, |sum, c| sum + c);
+            println!("{:?}", cc); 
+            break;
+        }
+    }
 
 }
