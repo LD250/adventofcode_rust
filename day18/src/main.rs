@@ -17,35 +17,6 @@ fn main() {
         line.chars().map(|c| if c == '.' {false} else {true}).collect()
     }).collect();
 
-    struct RectIndexes {
-        x: usize,
-        y: usize,
-    }
-
-    /*
-    impl Iterator for RectIndexes {
-        type Item = (usize, usize);
-        fn next(&mut self) -> Option<(usize, usize)> {
-            for r in [-1, 0, 1].iter() {
-                for c in [-1, 0, 1] {
-                    if ((r != 0) || (c != 0)) && (self.x + r >= 0) && (self.y + c >= 0) && (self.x + r <= 100) && (self.y + c <= 100) {
-                        Some((self.r + r, self.y + c))
-                    }
-                }
-            }
-            None
-        }
-    }
-    */
-
-/*    fn get_rect_indedes(middle_index: (usize, usize)) -> [(usize, usize)] {
-        for r in [-1, 0, 1] {
-            for c in [-1, 0, 1] {
-            
-            }
-        }
-    }*/
-    // let coords: Vec<(i8, i8)> = (-1..2).map(|x: i8| (-1..2).map(|y: i8| (x, y))).iter().flat_map(|c: (i8, i8)| c).collect();
     fn neighbours_on(scheme: &Scheme, r: i8, c: i8) -> i8 {
         (-1..2).map(|x| (-1..2).map(|y| (x.clone(), y.clone())).collect())
                                .flat_map(|co: Vec<(i8, i8)>| co)
@@ -56,7 +27,7 @@ fn main() {
                                .count() as i8
     }
 
-    fn new_scheme(scheme: &Scheme) -> Scheme {
+    fn get_new_scheme(scheme: &Scheme) -> Scheme {
         let mut new_scheme: Scheme = vec![];
         for r in 0..scheme.len() {
             new_scheme.push(vec![]);
@@ -68,20 +39,23 @@ fn main() {
                     false if on_count == 3 => new_scheme[r].push(true),
                     false => new_scheme[r].push(false),
                 }
-                // println!("{:?}", new_scheme);
             
             }
         }
         new_scheme
     
     }
-    println!("{:?}", scheme[0]);
+    fn count_on(scheme: Scheme) -> usize {
+        scheme.iter().map(|l| l.iter().filter(|x| **x==true).count()).fold(0, |sum, x| sum + x)
+    }
+
     let mut i = 1;
+    let mut scheme1 = scheme.clone();
     loop {
-        let scheme = new_scheme(&scheme);
+        scheme1 = get_new_scheme(&scheme1);
         i += 1;
         if i > 100 {
-            let cc = scheme.iter().map(|line: Vec<bool>| line.iter().filter(|&b| *b).count());//.fold(0, |sum, c| sum + c);
+            let cc: usize = count_on(scheme1);
             println!("{:?}", cc); 
             break;
         }
