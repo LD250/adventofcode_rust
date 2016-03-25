@@ -27,17 +27,22 @@ fn main() {
                                .count() as i8
     }
 
-    fn get_new_scheme(scheme: &Scheme) -> Scheme {
+
+    fn get_new_scheme(scheme: &Scheme, stucked_corners: bool) -> Scheme {
         let mut new_scheme: Scheme = vec![];
         for r in 0..scheme.len() {
             new_scheme.push(vec![]);
             for c in 0..scheme.len() {
-                let on_count = neighbours_on(&scheme, r as i8, c as i8);
-                match scheme[r][c] {
-                    true if on_count == 2 || on_count == 3 => new_scheme[r].push(true),
-                    true => new_scheme[r].push(false),
-                    false if on_count == 3 => new_scheme[r].push(true),
-                    false => new_scheme[r].push(false),
+                if stucked_corners && ((r == 0 && c == 0) || (r == 0 && c == 99) || (r == 99 && c == 0) || (r == 99 && c == 99)) {
+                    new_scheme[r].push(true);
+                } else {
+                    let on_count = neighbours_on(&scheme, r as i8, c as i8);
+                    match scheme[r][c] {
+                        true if on_count == 2 || on_count == 3 => new_scheme[r].push(true),
+                        true => new_scheme[r].push(false),
+                        false if on_count == 3 => new_scheme[r].push(true),
+                        false => new_scheme[r].push(false),
+                    }
                 }
             
             }
@@ -45,20 +50,24 @@ fn main() {
         new_scheme
     
     }
+
     fn count_on(scheme: Scheme) -> usize {
         scheme.iter().map(|l| l.iter().filter(|x| **x==true).count()).fold(0, |sum, x| sum + x)
     }
 
-    let mut i = 1;
-    let mut scheme1 = scheme.clone();
-    loop {
-        scheme1 = get_new_scheme(&scheme1);
-        i += 1;
-        if i > 100 {
-            let cc: usize = count_on(scheme1);
-            println!("{:?}", cc); 
-            break;
+    fn light_on_after_steps(scheme: &Scheme, steps_count: usize, stucked_corners: bool) -> usize {
+        let mut i = 1;
+        let mut scheme1 = scheme.clone();
+        loop {
+            scheme1 = get_new_scheme(&scheme1, stucked_corners);
+            i += 1;
+            if i > steps_count {
+                return count_on(scheme1);
+            }
         }
     }
+
+    println!("{:?}", light_on_after_steps(&scheme, 100, false)); 
+    println!("{:?}", light_on_after_steps(&scheme, 100, true)); 
 
 }
