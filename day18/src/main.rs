@@ -52,7 +52,7 @@ fn main() {
     }
 
     fn count_on(scheme: Scheme) -> usize {
-        scheme.iter().map(|l| l.iter().filter(|x| **x==true).count()).fold(0, |sum, x| sum + x)
+        scheme.iter().map(|l| l.iter().filter(|&x| *x==true).count()).fold(0, |sum, x| sum + x)
     }
 
     fn light_on_after_steps(scheme: &Scheme, steps_count: usize, stucked_corners: bool) -> usize {
