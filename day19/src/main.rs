@@ -42,7 +42,7 @@ fn main() {
     let threads_count = match args.len() {
         1 => DEFAULT_THREADS_COUNT, 
         _ => match args[1].parse() {
-            Ok(c) if c <= 20 => c,
+            Ok(c) if c <= 43 => c,
             _ => panic!("Argument must be an integer that less than 20"),
         }
     };
@@ -68,21 +68,19 @@ fn main() {
 
     let (tx, rx): (Sender<HashSet<String>>, Receiver<HashSet<String>>) = mpsc::channel();
     let shared_repl = Arc::new(replacements.clone());
-    let replacements_chunks = replacements_len / threads_count;
+    let chunks_per_thread = replacements_len / threads_count;
     for id in 0..threads_count {
         let thread_tx = tx.clone();
         let repl = shared_repl.clone();
         let mol = molecule.clone();
-        
+        let last_id = if id == threads_count - 1 {replacements_len} else { (id + 1) * chunks_per_thread};
         thread::spawn(move || {
-            let molecules = apply_all_replacements(&mol, &repl[..]);
+            let molecules = apply_all_replacements(&mol, &repl[id * chunks_per_thread..last_id]);
             thread_tx.send(molecules).unwrap();
             println!("thread {} finished", id);
         });
     }
  
-    let replaced_molecule = get_new_molecules("HOHOH", "H", "OO");
-    
     let mut result_molecules: HashSet<String> = HashSet::new();
     for _ in 0..threads_count {
         let molecules = rx.recv().unwrap();
@@ -90,6 +88,5 @@ fn main() {
         result_molecules = result_molecules.union(&molecules).cloned().collect();
     }
 
-    //println!("{:?}", result_molecules);
     println!("{:?}", result_molecules.len());
 }
