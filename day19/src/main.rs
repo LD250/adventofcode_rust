@@ -77,7 +77,7 @@ fn main() {
         thread::spawn(move || {
             let molecules = apply_all_replacements(&mol, &repl[id * chunks_per_thread..last_id]);
             thread_tx.send(molecules).unwrap();
-            println!("thread {} finished", id);
+            //println!("thread {} finished", id);
         });
     }
  
