@@ -9,10 +9,10 @@ use std::collections::HashSet;
 use std::thread;
 use std::sync::mpsc::{Sender, Receiver};
 use std::sync::mpsc;
+use std::sync::Arc;
 
 
 fn get_new_molecules(init_molecule: &str, from: &str, to: &str) -> Vec<String> {
-    println!("{:?}", init_molecule);
     let splited_molecule: Vec<&str> = init_molecule.split(from).collect();
     let molecule_len = splited_molecule.len();
     (0..molecule_len - 1).map(|i| splited_molecule.iter()
@@ -31,8 +31,8 @@ fn get_new_molecules(init_molecule: &str, from: &str, to: &str) -> Vec<String> {
 
 }
 
-fn apply_all_replacements(init_molecule: &str, replacements: Vec<(&str, &str)>) -> HashSet<String> {
-    replacements.iter().map(|&(from, to)| get_new_molecules(init_molecule, from, to)).flat_map(|molecula| molecula).collect()
+fn apply_all_replacements(init_molecule: &str, replacements: &[(String, String)]) -> HashSet<String> {
+    replacements.iter().map(|repl| get_new_molecules(init_molecule, &repl.0, &repl.1)).flat_map(|molecula| molecula).collect()
 }
 
 fn main() {
@@ -58,44 +58,38 @@ fn main() {
     };
     let lines: Vec<&str> = content.trim().split("\n").collect();
     let replacements_len = lines.len() - 2;
-    let molecule = lines[replacements_len + 1];
-    let replacements: Vec<(&str, &str)> = lines.iter()
+    let molecule = lines[replacements_len + 1].to_string();
+    let replacements: Vec<(String, String)> = lines.iter()
                                                .take(replacements_len)
                                                .map(|&line| {
                                                         let parts: Vec<&str> = line.split(" => ").collect();
-                                                        (parts[0], parts[1])})
+                                                        (parts[0].to_string(), parts[1].to_string())})
                                                .collect(); 
 
-    //let (tx, rx): (Sender<HashSet<String>>, Receiver<HashSet<String>>) = mpsc::channel();
+    let (tx, rx): (Sender<HashSet<String>>, Receiver<HashSet<String>>) = mpsc::channel();
+    let shared_repl = Arc::new(replacements.clone());
+    let replacements_chunks = replacements_len / threads_count;
     for id in 0..threads_count {
-        //let thread_tx = tx.clone();
-        let repl: Vec<(&str, &str)> = replacements.clone().iter().map(|&x| x).collect();//.skip(0).take(5).collect();
+        let thread_tx = tx.clone();
+        let repl = shared_repl.clone();
+        let mol = molecule.clone();
+        
         thread::spawn(move || {
-            let molecules = apply_all_replacements(molecule, repl);
-            //thread_tx.send(molecules).unwrap();
-            println!("thread {} finished", 34);
+            let molecules = apply_all_replacements(&mol, &repl[..]);
+            thread_tx.send(molecules).unwrap();
+            println!("thread {} finished", id);
         });
     }
-    println!("{:?}", &replacements[1..threads_count]);
-    println!("{:?}", molecule);
  
     let replaced_molecule = get_new_molecules("HOHOH", "H", "OO");
     
-    //let handle = thread::spawn(|| {
-    //    get_new_molecules("HOHOHHHHOHHHHHHHHHHOOOOOOOOOOOHHHHHHHHHHOOOOOOOOOO", "H", "OO")
-    //});
-
-    //println!("{:?}", handle.join().unwrap());
-    //thread::sleep(Duration::from_millis(50));
-    //
-/*
-    let mut result_molecules: HashSet<String>;
+    let mut result_molecules: HashSet<String> = HashSet::new();
     for _ in 0..threads_count {
-        // The `recv` method picks a message from the channel
-        // `recv` will block the current thread if there no messages available
-        rx.recv().unwrap();
+        let molecules = rx.recv().unwrap();
+        //println!("{:?}", molecules);
+        result_molecules = result_molecules.union(&molecules).cloned().collect();
     }
-*/
-    /*println!("{:?}", result_molecules);
-    println!("{:?}", result_molecules.len());*/
+
+    //println!("{:?}", result_molecules);
+    println!("{:?}", result_molecules.len());
 }
