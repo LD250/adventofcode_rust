@@ -9,7 +9,6 @@ use std::collections::HashSet;
 use std::thread;
 use std::sync::mpsc::{Sender, Receiver};
 use std::sync::mpsc;
-use std::sync::Arc;
 
 
 fn get_new_molecules(init_molecule: &str, from: &str, to: &str) -> Vec<String> {
@@ -31,7 +30,7 @@ fn get_new_molecules(init_molecule: &str, from: &str, to: &str) -> Vec<String> {
 
 }
 
-fn apply_all_replacements(init_molecule: &str, replacements: &[(String, String)]) -> HashSet<String> {
+fn apply_all_replacements(init_molecule: &str, replacements: &[(String, String)]) -> Vec<String> {
     replacements.iter().map(|repl| get_new_molecules(init_molecule, &repl.0, &repl.1)).flat_map(|molecula| molecula).collect()
 }
 
@@ -66,8 +65,8 @@ fn main() {
                                                         (parts[0].to_string(), parts[1].to_string())})
                                                .collect(); 
 
-    let (tx, rx): (Sender<HashSet<String>>, Receiver<HashSet<String>>) = mpsc::channel();
-    let shared_repl = Arc::new(replacements.clone());
+    let (tx, rx): (Sender<Vec<String>>, Receiver<Vec<String>>) = mpsc::channel();
+    let shared_repl = replacements.clone();
     let chunks_per_thread = replacements_len / threads_count;
     for id in 0..threads_count {
         let thread_tx = tx.clone();
@@ -77,16 +76,71 @@ fn main() {
         thread::spawn(move || {
             let molecules = apply_all_replacements(&mol, &repl[id * chunks_per_thread..last_id]);
             thread_tx.send(molecules).unwrap();
-            //println!("thread {} finished", id);
         });
     }
  
     let mut result_molecules: HashSet<String> = HashSet::new();
     for _ in 0..threads_count {
         let molecules = rx.recv().unwrap();
-        //println!("{:?}", molecules);
-        result_molecules = result_molecules.union(&molecules).cloned().collect();
+        result_molecules = result_molecules.union(&molecules.into_iter().collect()).cloned().collect();
     }
 
     println!("{:?}", result_molecules.len());
+    // part 2
+    let mut result_molecules: HashSet<String> = HashSet::new();
+    let mut mol_set: HashSet<String> = HashSet::new();
+    let mut mol_visited: HashSet<String> = HashSet::new();
+    mol_set.insert(molecule.clone());
+    mol_visited.insert(molecule.clone());
+    let mut replacements_b: Vec<(String, String)> = replacements.clone().iter().map(|r| (r.1.clone(), r.0.clone())).collect();
+    let mmm = apply_all_replacements("NRnBSiRnCaRnFArYFArFArF", &replacements_b[..]);
+    /*println!(" mmmm {:?}", mmm);
+    fn stack_owerflow(mol_set: &[HashSet<String>], repr: &Vec<(String, String)>) -> i32 {
+        let mut new_mol_set: Vec<String> = Vec::new();
+        for m in mol_set {
+            new_mol_set.extend_from_slice(&apply_all_replacements(m, &replacements_b[..])[..]);
+        };
+        if new_mol_set.iter().any(|mo| mo == "e") {
+            println!("part 2 answer {}", i);
+            break;
+        };
+        println!("len = {:?} mol_set_len {}", &new_mol_set.len(), &mol_set.len());
+        if new_mol_set.len() == 0 {
+            println!("mol_set {:?}", &mol_set);
+        
+        }
+        let min_len: usize = new_mol_set.iter().min_by_key(|c| c.len()).unwrap().len();
+        mol_set = new_mol_set.into_iter().filter(|c| c.len() == min_len).take(9).collect();
+        //mol_set = new_mol_set.into_iter().take(40).collect();
+        println!("len2 = {:?} ", &mol_set.len());
+        println!("min_len {} set_len {}", min_len, mol_set.len());
+    
+    
+    }*/
+    let mut i: i32 = 0;
+    loop {
+        i += 1;
+        let mut new_mol_set: Vec<String> = Vec::new();
+        let mut c: i32 = 0;
+        for m in &mol_set {
+            //println!("{} {}", i, c);
+            c += 1;
+            new_mol_set.extend_from_slice(&apply_all_replacements(m, &replacements_b[..])[..]);
+        };
+        if new_mol_set.iter().any(|mo| mo == "e") {
+            println!("part 2 answer {}", i);
+            break;
+        };
+        println!("len = {:?} mol_set_len {}", &new_mol_set.len(), &mol_set.len());
+        if new_mol_set.len() == 0 {
+            println!("mol_set {:?}", &mol_set);
+        
+        }
+        let min_len: usize = new_mol_set.iter().min_by_key(|c| c.len()).unwrap().len();
+        mol_set = new_mol_set.into_iter().filter(|c| c.len() == min_len).take(40).collect();
+        //mol_set = new_mol_set.into_iter().take(40).collect();
+        println!("len2 = {:?} ", &mol_set.len());
+        println!("min_len {} set_len {}", min_len, mol_set.len());
+    
+    }
 }
