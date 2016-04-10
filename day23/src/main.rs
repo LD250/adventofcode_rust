@@ -1,5 +1,5 @@
 // #![feature(slice_patterns)]
-use std::io::prelude::*
+use std::io::prelude::*;
 use std::fs::File;
 use std::collections::HashMap;
 
