@@ -7,12 +7,12 @@ Recharge costs 229 mana. It starts an effect that lasts for 5 turns. At the star
 */
 
 fn one_spell(spell_id: &str, hp: i8, mp: u16, s_e: u8, p_e: u8, r_e: u8, m_spend: u16, b_hp: i8, b_dmg: &i8, m_spend_min: &mut u16) {
+    let (s_e, bdmg) = if s_e > 0 {(s_e - 1, *b_dmg - 7)} else {(0, *b_dmg)};
+    let (p_e, b_hp) = if p_e > 0 {(p_e - 1, b_hp - 3)} else {(0, b_hp)};
+    let (r_e, mp) = if r_e > 0 {(r_e - 1, mp + 101)} else {(0, mp)};
     if (spell_id == "S" && s_e > 0) || (spell_id == "P" && p_e > 0) || (spell_id == "R" && r_e > 0) {
         return;
     };
-    let (s_e, bdmg) =  if s_e > 0 {(s_e - 1, *b_dmg - 7)} else {(0, *b_dmg)};
-    let (p_e, b_hp) =  if p_e > 0 {(p_e - 1, b_hp - 3)} else {(0, b_hp)};
-    let (r_e, mp) =  if r_e > 0 {(r_e - 1, mp + 101)} else {(0, mp)};
     if b_hp <= 0 {
         *m_spend_min = m_spend;
         return;
@@ -37,7 +37,15 @@ fn one_spell(spell_id: &str, hp: i8, mp: u16, s_e: u8, p_e: u8, r_e: u8, m_spend
             *m_spend_min = m_spend;
         };
         return;
+    };
+    let (s_e, bdmg) = if s_e > 0 {(s_e - 1, *b_dmg - 7)} else {(0, *b_dmg)};
+    let (p_e, b_hp) = if p_e > 0 {(p_e - 1, b_hp - 3)} else {(0, b_hp)};
+    let (r_e, mp) = if r_e > 0 {(r_e - 1, mp + 101)} else {(0, mp)};
+    if b_hp <= 0 {
+        *m_spend_min = m_spend;
+        return;
     }
+
     if hp - bdmg <= 0 {
         return;
     };
